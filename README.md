@@ -10,7 +10,6 @@ Implements the Titanfall 2 communities API and UDP protocol.
 - Fully self-sufficient (Doesn't depend on original backend in any way)
 - Maintains vanilla behvaiour as closely as possible
 - Automatically assigns new users to The Advocate Network
--
 
 ---
 
