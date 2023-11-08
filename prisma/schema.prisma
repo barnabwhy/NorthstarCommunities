@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CommunityAttitude {
+  social
+  competitive
+}
+
+enum CommunityCategory {
+  gaming
+  lifestyle
+  geography
+  tech
+  other
+}
+
+enum CommunityVisibility {
+  public
+  private
+}
+
+enum CommunityOpenState {
+  open
+  invite
+}
+
+enum MicPref {
+  nopref
+  yes
+  no
+}
+
+enum MembershipType {
+  member
+  admin
+  owner
+}
+
+model User {
+  id                  BigInt                @id
+  name                String               @unique
+  communities         CommunityMembership[]
+  currentCommunity    BigInt                @default(1)
+  communityMembership MembershipType        @default(member)
+}
+
+model CommunityMembership {
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  userId      BigInt
+  communityId BigInt
+
+  membershipType MembershipType @default(member)
+
+  @@id([userId, communityId])
+}
+
+model Community {
+  id                BigInt                @id @default(autoincrement())
+  name              String
+  clantag           String
+  motd              String
+  category          CommunityCategory
+  type              CommunityAttitude
+  visibility        CommunityVisibility
+  open              CommunityOpenState
+  mics              MicPref
+  regions           String[]
+  languages         String[]
+  utcHappyHourStart Int                   @default(9)
+  // happyHourStart    Int
+  invitesAllowed    Boolean
+  chatAllowed       Boolean
+  creatorUID        String
+  creatorName       String
+  verified          Boolean
+  kills             Int                   @default(0)
+  wins              Int                   @default(0)
+  xp                Int                   @default(0)
+  deaths            Int                   @default(0)
+  losses            Int                   @default(0)
+  matches           Int                   @default(0)
+  ownerCount        Int                   @default(1)
+  adminCount        Int                   @default(0)
+  memberCount       Int                   @default(1)
+  members           CommunityMembership[]
+}

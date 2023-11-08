@@ -1,0 +1,24 @@
+{
+  "name": "northstar-communities",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "license": "MIT",
+  "scripts": {
+    "dev": "ts-node .",
+    "build": "tsc ."
+  },
+  "dependencies": {
+    "@fastify/formbody": "^7.4.0",
+    "@fastify/multipart": "^8.0.0",
+    "@prisma/client": "^5.4.2",
+    "dotenv": "^16.3.1",
+    "fastify": "^4.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.6",
+    "prisma": "^5.4.2",
+    "ts-node": "^10.9.1",
+    "tsc": "^2.0.4",
+    "typescript": "^5.2.2"
+  }
+}
