@@ -104,6 +104,7 @@ export async function listCommunities(start: number, max: number, minMembers: nu
             memberCount: {
                 gte: Number(minMembers),
             },
+            visibility: 'public',
         };
 
         if (category) whereInput.category = CommunityCategory[category];
