@@ -64,9 +64,16 @@ export interface RInfo {
 
 
 const RINFO_USERS = new Map<string, string>();
+const USER_RINFOS = new Map<string, string>();
 
 export function linkUserToRInfo(rinfo: RInfo, uid: string) {
+    // delete possible existing entry for user (prevents collision)
+    let uRinfo = USER_RINFOS.get(uid);
+    if (uRinfo)
+        RINFO_USERS.delete(uRinfo);
+
     RINFO_USERS.set(`${rinfo.address}:${rinfo.port}`, uid);
+    USER_RINFOS.set(uid, `${rinfo.address}:${rinfo.port}`);
 }
 
 export async function getUserByRInfo(rinfo: RInfo): Promise<User | null> {
@@ -79,23 +86,17 @@ export async function getUserByRInfo(rinfo: RInfo): Promise<User | null> {
 }
 
 const MSG_ID_ROLLOVER = 0xFFFF;
-// const MSG_ID_RESET_TIMER = 5000;
 
 const MSG_ID_TRACKER = new Map<string, any>();
 
 export function nextMsgId(rinfo: RInfo) {
-    if (!MSG_ID_TRACKER.has(`${rinfo.address}:${rinfo.port}`)) {
-        MSG_ID_TRACKER.set(`${rinfo.address}:${rinfo.port}`, { msgId: 0, /*lastReset: Date.now()*/ });
-    }
+    let msgId = MSG_ID_TRACKER.get(`${rinfo.address}:${rinfo.port}`);
 
-    let val = MSG_ID_TRACKER.get(`${rinfo.address}:${rinfo.port}`);
-
-    let newMsgId = val.msgId + 1;
-    let doReset = newMsgId >= MSG_ID_ROLLOVER; //|| Date.now() - MSG_ID_RESET_TIMER > val.lastReset;
-    if (doReset)
+    let newMsgId = (msgId || 0) + 1;
+    if (newMsgId >= MSG_ID_ROLLOVER)
         newMsgId = 1;
 
-    MSG_ID_TRACKER.set(`${rinfo.address}:${rinfo.port}`, { msgId: newMsgId, /*lastReset: doReset ? Date.now() : val.lastReset*/ });
+    MSG_ID_TRACKER.set(`${rinfo.address}:${rinfo.port}`, newMsgId);
 
     return newMsgId;
 }
