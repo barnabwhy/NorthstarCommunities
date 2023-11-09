@@ -1,4 +1,4 @@
-import { Community, CommunityAttitude, CommunityCategory, CommunityMembership, CommunityOpenState, MicPref, PrismaClient, User } from '@prisma/client'
+import { Community, CommunityAttitude, CommunityCategory, CommunityMembership, CommunityOpenState, CommunityVisibility, MicPref, PrismaClient, User } from '@prisma/client'
 
 const prisma = new PrismaClient();
 
@@ -247,39 +247,37 @@ export async function setActiveCommunity(uid: string | bigint | number, communit
 
 
 async function ensureAdvocateExists() {
-    let adv = await prisma.community.findUnique({ where: { id: 1 } });
+    const advocateData = {
+        id: BigInt(1),
+        name: process.env.DEFAULT_COMMUNITY_NAME || "The Advocate Network",
+        clantag: (process.env.DEFAULT_COMMUNITY_CLANTAG || "ADV").substring(0, 16),
+        motd: process.env.DEFAULT_COMMUNITY_MOTD || "I am the Advocate. Welcome back to all pilots.",
+        category: 'tech' as CommunityCategory,
+        type: 'social' as CommunityAttitude,
+        visibility: 'public' as CommunityVisibility,
+        open: 'open' as CommunityOpenState,
+        mics: 'nopref' as MicPref,
+        regions: ["North America", "Europe", "South America", "Asia", "Oceania"],
+        languages: ["English", "French", "German", "Italian", "Spanish", "MSpanish", "Japanese", "TChinese", "Russian", "Portuguese", "Polish"],
+        utcHappyHourStart: 8,
+        invitesAllowed: false,
+        chatAllowed: false,
+        creatorUID: '0',
+        creatorName: '',
+        verified: true,
+        ownerCount: 1,
+        adminCount: 0,
+    };
 
-    if (adv)
-        return;
-
-    console.log("Creating Advocate Network...")
-    await prisma.community.create({
-        data: {
+    await prisma.community.upsert({
+        where: {
             id: BigInt(1),
-            name: "The Advocate Network",
-            clantag: "ADV",
-            motd: "I am the Advocate. Welcome back to all pilots.",
-            category: 'tech',
-            type: 'social',
-            visibility: 'public',
-            open: 'open',
-            mics: 'nopref',
-            regions: ["North America", "Europe", "South America", "Asia", "Oceania"],
-            languages: ["English", "French", "German", "Italian", "Spanish", "MSpanish", "Japanese", "TChinese", "Russian", "Portuguese", "Polish"],
-            utcHappyHourStart: 8,
-            invitesAllowed: false,
-            chatAllowed: false,
-            creatorUID: '43216049333521234',
-            creatorName: '',
-            verified: true,
-            kills: 1340629574,
-            wins: 97447848,
-            xp: 1013697106,
-            ownerCount: 3,
-            adminCount: 3,
-            memberCount: 0,
         },
+        create: Object.assign({}, advocateData, { memberCount: 0 }),
+        update: advocateData,
     });
+
+    console.log(`Initialised default community: [${advocateData.clantag}] ${advocateData.name}`);
 }
 
 ensureAdvocateExists();
