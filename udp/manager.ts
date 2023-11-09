@@ -1,7 +1,7 @@
-import { getUserByID } from "../db";
+import { getCommunityMembership, getUserByID } from "../db";
 import { ReadBuffer } from "../buffer";
 import { MAGIC, MsgType, RInfo, constructRes, getUserByRInfo, linkUserToRInfo, nextMsgId, sendBuffer, sendPlayerList } from "./common";
-import { joinRoom, pingRoomMember } from "./roomMan";
+import { getRoom, joinRoom, pingRoomMember } from "./roomMan";
 import { allowPacket } from "./rates";
 
 const dgram = require('node:dgram');
@@ -71,7 +71,12 @@ export async function startUDPServer(port: number) {
 
                 let user = await getUserByID(uid);
                 if (user && user.name == username) {
-                    joinRoom(user, room);
+                    let roomInfo = getRoom(room);
+                    if(roomInfo) {
+                        let commMemb = await getCommunityMembership(user.id, roomInfo?.communityId)
+                        if(commMemb)
+                            joinRoom(user, room, commMemb.membershipType);
+                    }
 
                     linkUserToRInfo(rinfo, user.id.toString());
                     sendPlayerList(server, rinfo, user);

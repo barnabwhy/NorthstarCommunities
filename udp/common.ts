@@ -130,7 +130,7 @@ export function sendPlayerList(server, rinfo: RInfo, user: User) {
         // Byte: 02
         // Short: Name length (incl nullterm)
         // String: Name + nullterm
-        // Byte 02
+        // Byte: 2 = normal member, 1 = sad gear (admin), 0 = owner
         // Short: 0 or 1 (Some bool? Will make 1 for now)
         // Short: 0 or 1 (Some bool? Will make 0 for now)
 
@@ -139,7 +139,7 @@ export function sendPlayerList(server, rinfo: RInfo, user: User) {
         userBuf.writeBuffer(encString(usr.id.toString()));
         userBuf.writeUInt8(0x02);
         userBuf.writeBuffer(encString(usr.name));
-        userBuf.writeUInt8(0x02);
+        userBuf.writeUInt8(usr.type == 'member' ? 0x02 : (usr.type == 'admin' ? 0x01 : 0x00)); // membership type
         userBuf.writeUInt16(0x01);
         userBuf.writeUInt16(0x00);
 

@@ -1,8 +1,9 @@
-import { User } from "@prisma/client";
+import { MembershipType, User } from "@prisma/client";
 
 interface RoomMember {
     id: bigint;
     name: string;
+    type: MembershipType;
     lastPing: number;
 }
 
@@ -19,7 +20,7 @@ export function getOnlineCount(communityId: bigint) {
 const rooms: { [id: string]: Room } = {};
 const userMap: { [id: string]: string } = {};
 
-const ghostUserMap: { [id: string]: { room: string, lastPing: number } } = {};
+const ghostUserMap: { [id: string]: { room: string, type: MembershipType, lastPing: number } } = {};
 
 function cullRooms() {
     for (const id in rooms) {
@@ -32,6 +33,7 @@ function cullRooms() {
                 if (Date.now() - (room.members[memberId]?.lastPing || 0) < 30000) { // add to ghosts if they have pinged in last 30s
                     ghostUserMap[memberId] = {
                         room: id,
+                        type: room.members[memberId]?.type || 'member',
                         lastPing: room.members[memberId]?.lastPing || 0,
                     }
                 }
@@ -68,7 +70,7 @@ export function pingRoomMember(user: User) {
         if (!ghostUser)
             return;
 
-        joinRoom(user, ghostUser.room);
+        joinRoom(user, ghostUser.room, ghostUser.type);
         roomId = ghostUser.room;
     }
 
@@ -80,12 +82,13 @@ export function pingRoomMember(user: User) {
     }
 }
 
-export function joinRoom(user: User, roomId: string) {
+export function joinRoom(user: User, roomId: string, memberType: MembershipType) {
     let room = rooms[roomId];
     if (room) {
         room.members[user.id.toString()] = {
             id: user.id,
             name: user.name,
+            type: memberType,
             lastPing: Date.now(),
         };
         userMap[user.id.toString()] = roomId;
